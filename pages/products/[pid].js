@@ -1,7 +1,6 @@
-import fs from 'fs/promises'
-import path from 'path'
-import { useRouter } from 'next/router'
-import { Fragment } from "react";
+import fs from "fs/promises";
+import path from "path";
+import { useRouter } from "next/router";
 
 // lesson from fallback...
 // fallback: 'blocking'
@@ -18,59 +17,61 @@ import { Fragment } from "react";
 // further note: “fallback” version is props will be empty, you can detect if the fallback is being rendered, router.isFallback will be true.
 
 function ProductDetailPage(props) {
-    const router = useRouter();
-    console.log("logging...", props)
-    const { loadedProduct } = props;
-    // below 2 ifs are example of using “fallback” version examples. Either one is fine.
-    if (!loadedProduct) {
-        return (<p>SSR is in process, it is now Loading...</p>)
-    }
-    // if (router.isFallback) {
-    //     return <div>fallback version is loading...</div>
-    // }
-    return <Fragment>
-        <h1>{ loadedProduct.title }</h1>
-        <p>{ loadedProduct.description }</p>
-    </Fragment>
+  const router = useRouter();
+  console.log("logging...", props);
+  const { loadedProduct } = props;
+  // below 2 ifs are example of using “fallback” version examples. Either one is fine.
+  if (!loadedProduct) {
+    return <p>SSR is in process, it is now Loading...</p>;
+  }
+  if (router.isFallback) {
+    return <div>fallback version is loading...</div>;
+  }
+  return (
+    <>
+      <h1>{loadedProduct.title}</h1>
+      <p>{loadedProduct.description}</p>
+    </>
+  );
 }
-export default ProductDetailPage
+export default ProductDetailPage;
 
 export async function getStaticProps(context) {
-    console.log("getStaticProps")
-    const { params } = context;
-    const pdtId = params.pid;
-    const parsedData = await getData();
-    const prdt = parsedData.products.find( pdt => pdt.id === pdtId)
+  console.log("getStaticProps");
+  const { params } = context;
+  const pdtId = params.pid;
+  const parsedData = await getData();
+  const prdt = parsedData.products.find((pdt) => pdt.id === pdtId);
 
-    if (!prdt) {
-        return { notfound: true }
-    }
-    return {
-        props: {
-            loadedProduct: prdt
-        },
-    }
+  if (!prdt) {
+    return { notfound: true };
+  }
+  return {
+    props: {
+      loadedProduct: prdt,
+    },
+  };
 }
 
 export async function getStaticPaths() {
-    console.log("Running.. getStaticPaths")
-    const parsedData = await getData();
-    const ids = parsedData.products.map(pdt => pdt.id);
-    const pathsWithParams = ids.map( id => ({params: {pid: id}})) // {} is a function body, wrappng it '()' means returning {} object.
-    return {
-        paths: pathsWithParams,
-        // by the time removing hardcoded
-        // remove pathsWithParams, uncomment below code, to playaround fallback:true, blocking.
-        // [
-        //     {params: {pid: "p1"}},
-        // ],
-        fallback: true,
-    }
+  console.log("Running.. getStaticPaths");
+  const parsedData = await getData();
+  const ids = parsedData.products.map((pdt) => pdt.id);
+  const pathsWithParams = ids.map((id) => ({ params: { pid: id } })); // {} is a function body, wrappng it '()' means returning {} object.
+  return {
+    paths: pathsWithParams,
+    // by the time removing hardcoded
+    // remove pathsWithParams, uncomment below code, to playaround fallback:true, blocking.
+    // [
+    //     {params: {pid: "p1"}},
+    // ],
+    fallback: true,
+  };
 }
 
 async function getData() {
-    const filePath = path.join(process.cwd(), 'data', 'dummy-backend.json');
-    const jsonData = await fs.readFile(filePath);
-    const parsedData = JSON.parse(jsonData);
-    return parsedData;
+  const filePath = path.join(process.cwd(), "data", "dummy-backend.json");
+  const jsonData = await fs.readFile(filePath);
+  const parsedData = JSON.parse(jsonData);
+  return parsedData;
 }

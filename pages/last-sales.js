@@ -25,7 +25,7 @@ const LastSalesPage = (props) => {
                 tranf.push({id: key, username: data[key].username, volume: data[key].volume})
             }
             setSales(tranf);
-            setIsLoading(false);
+            // setIsLoading(false);
         }
     }, [data])
     if (error) {
